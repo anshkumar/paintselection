@@ -1,0 +1,270 @@
+<!doctype html>
+<html>
+<head>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var drag = false;
+    var imageObj = null;
+
+    //Circle parameters
+    var radius = 3;
+    var startAngle = 0;
+    var endAngle = 2 * Math.PI;
+    var counterClockwise = false;
+    var drawingCircle = false;
+    var lastX, lastY;
+
+    //*****************
+    var img;
+    var mask;
+    var src;
+    var bgdModel;
+    var fgdModel;
+    var contours;
+
+
+    var BLUE = [255,0,0]        // rectangle color
+    var RED = [0,0,255]         // PR BG
+    var GREEN = [0,255,0]       // PR FG
+    var BLACK = [0,0,0]         // sure BG
+    var WHITE = [255,255,255] // sure FG
+
+    var DRAW_BG = {'color' : BLACK, 'val' : 0}
+    var DRAW_FG = {'color' : WHITE, 'val' : 1}
+    var DRAW_PR_FG = {'color' : GREEN, 'val' : 3}
+    var DRAW_PR_BG = {'color' : RED, 'val' : 2}
+
+    // setting up flags
+    var drawing = false         // flag for drawing curves
+    var value = DRAW_FG         // drawing initialized to FG
+    var isInitialized = false   // initialized flag
+
+    var rectState, lblsState, prLblsState;
+
+    function init() {
+        imageObj = new Image();
+        imageObj.onload = function () {
+          canvas.width  = this.width;
+          canvas.height = this.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(imageObj, 0, 0, canvas.width, canvas.height);
+        };
+        imageObj.src = "st.png";
+        canvas.addEventListener('mousedown', mouseDown, false);
+        canvas.addEventListener('mouseup', mouseUp, false);
+        canvas.addEventListener('mousemove', mouseMove, false);
+        document.addEventListener("keydown", keyCheck);
+        window.addEventListener("beforeunload", destructor);
+    }
+
+    function setRectInMask() {
+      mask.setTo(new cv.Scalar(DRAW_PR_BG['val']));
+    }
+
+    function nextIter() {
+      bgdModel = new cv.Mat();
+      fgdModel = new cv.Mat();
+      contours.delete();
+      contours = new cv.MatVector();
+      if(isInitialized)
+        cv.paintselection(src, mask, contours, bgdModel, fgdModel, 1);
+      else{
+          cv.paintselection(src, mask, contours, bgdModel, fgdModel, 1, cv.GC_INIT_WITH_MASK);
+          isInitialized = true;
+      }
+      return 0;
+    }
+
+    function reset() {
+      init();
+      cv.cvtColor(src, src, cv.COLOR_RGBA2RGB, 0);
+      if(isInitialized){
+        mask.delete();
+        src.delete();
+        src = cv.imread(imageObj);
+        cv.cvtColor(src, src, cv.COLOR_RGBA2RGB, 0);
+        mask = new cv.Mat(src.rows, src.cols, cv.CV_8UC1, new cv.Scalar(DRAW_PR_BG['val']));
+        setRectInMask();
+        bgdModel.delete(); fgdModel.delete();
+        // contours.delete();
+      }
+      drawing = false;         // flag for drawing curves
+      value = DRAW_FG;         // drawing initialized to FG
+      isInitialized = false;   // initialized flag
+    }
+
+    function mouseDown(e) {
+      drag = true;
+      var isb = e.ctrlKey;
+      var isf = e.shiftKey;
+      // Left mouse click
+      if(e.which == 1){
+        if ( (isb || isf) ){
+          drawing = true;
+          if(isb){
+            value = DRAW_BG;
+          }
+          else if(isf){
+            value = DRAW_FG;
+          }
+          Draw(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true, value['color']);
+          let color = new cv.Scalar(value['val']);
+          let center = new cv.Point(e.pageX - this.offsetLeft,e.pageY - this.offsetTop);
+          cv.circle(mask,center,radius,color,-1);
+        }
+
+      }
+      //Right mouse click
+      if(e.which == 3){
+        if ( (isb || isf) ){
+            drawing = true;
+            if(isb){
+              value = DRAW_PR_BG;
+            }
+            else if(isf){
+              value = DRAW_PR_FG;
+            }
+            Draw(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true, value['color']);
+            let color = new cv.Scalar(value['val']);
+            let center = new cv.Point(e.pageX - this.offsetLeft,e.pageY - this.offsetTop);
+            cv.circle(mask,center,radius,color,-1);
+        }
+      }
+    }
+
+    function mouseUp(e) {
+      drag = false;
+      var isb = e.ctrlKey;
+      var isf = e.shiftKey;
+
+      if(e.which == 1){
+        if( (isb || isf) && drawing == true )
+        {
+            drawing == false;
+        }
+      }
+      if(e.which == 3){
+        if( (isb || isf) && drawing == true )
+        {
+            drawing == false;
+        }
+      }
+    }
+
+    function mouseMove(e) {
+      var isb = e.ctrlKey;
+      var isf = e.shiftKey;
+
+      if(!drag)
+        return;
+
+      // Left mouse drag
+      if(e.which == 1){
+        if( (isb || isf) && drawing == true )
+        {
+            if(isb){
+              value = DRAW_BG;
+            }
+            else if(isf){
+              value = DRAW_FG;
+            }
+            Draw(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true, value['color']);
+            let color = new cv.Scalar(value['val']);
+            let center = new cv.Point(e.pageX - this.offsetLeft,e.pageY - this.offsetTop);
+            cv.circle(mask,center,radius,color,-1);
+        }
+        else if( (isb || isf) && e.which == 3 )
+        {
+            if(isb){
+              value = DRAW_PR_BG;
+            }
+            else if(isf){
+              value = DRAW_PR_FG;
+            }
+            Draw(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true, value['color']);
+            let color = new cv.Scalar(value['val']);
+            let center = new cv.Point(e.pageX - this.offsetLeft,e.pageY - this.offsetTop);
+            cv.circle(mask,center,radius,color,-1);
+        }
+      }
+      //Right mouse drag
+      if(e.which == 3){
+        if ( (isb || isf) ){
+            if(isb){
+              value = DRAW_PR_BG;
+            }
+            else if(isf){
+              value = DRAW_PR_FG;
+            }
+            Draw(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true, value['color']);
+            let color = new cv.Scalar(value['val']);
+            let center = new cv.Point(e.pageX - this.offsetLeft,e.pageY - this.offsetTop);
+            cv.circle(mask,center,radius,color,-1);
+        }
+      }
+    }
+
+    function keyCheck(e){
+        if(String.fromCharCode(e.keyCode) == 'N'){
+          let status = nextIter();
+          if (status == -1)
+            return;
+          let src2 = src.clone();
+          // draw foreground
+          for (let i = 0; i < contours.size(); ++i) {
+          	let color = new cv.Scalar(Math.round(Math.random() * 255), Math.round(Math.random() * 255),
+          		Math.round(Math.random() * 255));
+          	cv.drawContours(src2, contours, i, color, 1, cv.LINE_8);
+          }
+          
+          // draw grab rect
+          cv.imshow('canvas', src2);
+          src2.delete();
+        } else if(String.fromCharCode(e.keyCode) == 'R') {
+          reset();
+        }
+    }
+
+    function Draw(x, y, isDown, color=[255,255,255]) {
+        if (isDown) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+            ctx.arc(x, y, radius, startAngle, endAngle, counterClockwise);
+            ctx.stroke();
+            ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;;
+            ctx.fill();
+        }
+        lastX = x; lastY = y;
+    }
+
+    function onOpenCvReady() {
+      cv['onRuntimeInitialized']=()=>{
+        src = cv.imread(imageObj);
+        mask = new cv.Mat(src.rows, src.cols, cv.CV_8UC1, new cv.Scalar(DRAW_PR_BG['val']));
+        contours = new cv.MatVector();
+        cv.cvtColor(src, src, cv.COLOR_RGBA2RGB, 0);
+        setRectInMask();
+      };
+
+    }
+
+    function destructor(e){
+      /*
+      The only way in Javascript to detect browser or tab closing stuffs are onunload & onbeforeunload events.
+      Unfortunately (or fortunately?), those events are also fired when you leave a site over a link or your browsers back button
+      */
+      if(isInitialized){
+        src.delete(); mask.delete(); bgdModel.delete(); fgdModel.delete();contours.delete();
+      }
+    }
+
+    init();
+
+  </script>
+  <script async src="./opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>
