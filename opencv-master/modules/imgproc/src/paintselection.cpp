@@ -1052,6 +1052,8 @@ void cv::paintselection(InputArray _img, InputOutputArray _mask,OutputArrayOfArr
     double r_ratio = 0.0;
     double ratio = 0.0;
     bool donwSampled = false;
+    int orig_rows = img.rows;
+    int orig_cols = img.cols;
     if (img.cols > 800 || img.rows > 600){
         c_ratio = img.cols/800.0;
         r_ratio = img.rows/600.0;
@@ -1131,12 +1133,12 @@ void cv::paintselection(InputArray _img, InputOutputArray _mask,OutputArrayOfArr
     
     //Upsampling
     if(donwSampled){
-        resize( mask, mask, Size( mask.cols*ratio, mask.rows*ratio ),0,0,INTER_NEAREST);
+        resize( mask, mask, Size( orig_cols, orig_rows ),0,0,INTER_NEAREST);
     }
     
     //Finding contours
     tStart = clock();
-    findContours((mask & 1)*255, contour, RETR_TREE, CHAIN_APPROX_TC89_L1 );
+    findContours((mask & 1)*255, contour, CV_RETR_EXTERNAL, CHAIN_APPROX_TC89_L1 );
     tEnd = clock();
     printf("findContours: %.2fs\n", (double)(tEnd - tStart) / CLOCKS_PER_SEC);
     
@@ -1179,6 +1181,8 @@ void cv::paintselection_slim(InputArray _img, InputOutputArray _mask,OutputArray
     double r_ratio = 0.0;
     double ratio = 0.0;
     bool donwSampled = false;
+    int orig_rows = img.rows;
+    int orig_cols = img.cols;
     if (img.cols > 800 || img.rows > 600){
         c_ratio = img.cols/800.0;
         r_ratio = img.rows/600.0;
@@ -1293,12 +1297,12 @@ void cv::paintselection_slim(InputArray _img, InputOutputArray _mask,OutputArray
                 
     //Upsampling
     if(donwSampled){
-        resize( mask, mask, Size( mask.cols*ratio, mask.rows*ratio ),0,0,INTER_NEAREST);
+        resize( mask, mask, Size( orig_cols, orig_rows ),0,0,INTER_NEAREST);
     }
     
     //Finding contours
     tStart = clock();
-    findContours((mask & 1)*255, contour, RETR_TREE, CHAIN_APPROX_TC89_L1 );
+    findContours((mask & 1)*255, contour, CV_RETR_EXTERNAL, CHAIN_APPROX_TC89_L1 );
     tEnd = clock();
     printf("findContours: %.2fs\n", (double)(tEnd - tStart) / CLOCKS_PER_SEC);
     
@@ -1342,6 +1346,8 @@ void cv::grabCut(InputArray _img, InputOutputArray _mask,OutputArrayOfArrays con
     double r_ratio = 0.0;
     double ratio = 0.0;
     bool donwSampled = false;
+    int orig_rows = img.rows;
+    int orig_cols = img.cols;
     if (img.cols > 800 || img.rows > 600){
         c_ratio = img.cols/800.0;
         r_ratio = img.rows/600.0;
@@ -1351,22 +1357,6 @@ void cv::grabCut(InputArray _img, InputOutputArray _mask,OutputArrayOfArrays con
         resize( img, img, Size( img.cols/ratio, img.rows/ratio ),0,0,INTER_NEAREST);
         resize( mask, mask, Size( mask.cols/ratio, mask.rows/ratio ),0,0,INTER_NEAREST);
         donwSampled = true;
-    }
-    
-    //Searching for starting seed pixel
-    bool found_seed = false;
-    Point starting_point;
-    CV_Assert( !mask.empty() );
-    for(int i=0; i< mask.cols; ++i){
-        for(int j=0; j<mask.rows; ++j){
-            if(mask.at<uchar>(j,i) == GC_FGD){  // at=> (row, column)
-                starting_point = Point(i,j);    // Point=> (column, row)
-                break;
-                found_seed = true;
-            }
-        }
-        if(found_seed)
-            break;
     }
     
     if (img.empty())
@@ -1417,12 +1407,12 @@ void cv::grabCut(InputArray _img, InputOutputArray _mask,OutputArrayOfArrays con
     
     //Upsampling
     if(donwSampled){
-        resize( mask, mask, Size( mask.cols*ratio, mask.rows*ratio ),0,0,INTER_NEAREST);
+        resize( mask, mask, Size( orig_cols, orig_rows ),0,0,INTER_NEAREST);
     }
     
     //Finding contours
     tStart = clock();
-    findContours((mask & 1)*255, contour, RETR_TREE, CHAIN_APPROX_TC89_L1 );
+    findContours((mask & 1)*255, contour, CV_RETR_EXTERNAL, CHAIN_APPROX_TC89_L1 );
     tEnd = clock();
     printf("findContours: %.2fs\n", (double)(tEnd - tStart) / CLOCKS_PER_SEC);
     
@@ -1465,6 +1455,8 @@ void cv::grabCut_slim(InputArray _img, InputOutputArray _mask, OutputArrayOfArra
     double r_ratio = 0.0;
     double ratio = 0.0;
     bool donwSampled = false;
+    int orig_rows = img.rows;
+    int orig_cols = img.cols;
     if (img.cols > 800 || img.rows > 600){
         c_ratio = img.cols/800.0;
         r_ratio = img.rows/600.0;
@@ -1581,12 +1573,12 @@ void cv::grabCut_slim(InputArray _img, InputOutputArray _mask, OutputArrayOfArra
     
     //Upsampling
     if(donwSampled){
-        resize( mask, mask, Size( mask.cols*ratio, mask.rows*ratio ),0,0,INTER_NEAREST);
+        resize( mask, mask, Size( orig_cols, orig_rows ),0,0,INTER_NEAREST);
     }
     
     //Finding contours
     tStart = clock();
-    findContours((mask & 1)*255, contour, RETR_TREE, CHAIN_APPROX_TC89_L1 );
+    findContours((mask & 1)*255, contour, CV_RETR_EXTERNAL, CHAIN_APPROX_TC89_L1 );
     tEnd = clock();
     printf("findContours: %.2fs\n", (double)(tEnd - tStart) / CLOCKS_PER_SEC);
     
