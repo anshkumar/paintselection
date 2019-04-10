@@ -25,13 +25,20 @@ Opencv grabcut algorithm is pretty good, but slow for large images. One bottlene
 
     A mulithreaded version of the function estimateSegmentation() (cf. file grabcut.cpp) is implemented, using our overloaded function maxFlow(). Threads run on disjoint subgraphs, corresponding to disjoint subregions of the image, thus no synchronization is needed. The residual graph is updated and the partial flows are added. A second parallel run with slightly shifted regions is performed to process inter-region edges. A last call to maxFlow() on the whole residual graph achieves the segmentation.
 
-Files:
+Source Files:
 
 dist/sources/modules/imgproc/include/opencv2/imgproc.hpp
-
 dist/sources/modules/imgproc/src/gcgraph.hpp
-
 dist/sources/modules/imgproc/src/grabcut.cpp
+dist/sources/modules/js/src/embindgen.py
+
+Example Files:
+
+grabcut.cpp
+grabcut.html
+grabcut.py
+paintselection.cpp
+paintselection.html
 
 References:
 1) Liu, Jiangyu, Jian Sun, and Heung-Yeung Shum. "Paint selection." ACM Transactions on Graphics (ToG) 28.3 (2009): 69.
