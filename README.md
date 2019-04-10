@@ -28,16 +28,24 @@ Opencv grabcut algorithm is pretty good, but slow for large images. One bottlene
 Source Files:
 
 dist/sources/modules/imgproc/include/opencv2/imgproc.hpp
+
 dist/sources/modules/imgproc/src/gcgraph.hpp
+
 dist/sources/modules/imgproc/src/grabcut.cpp
+
 dist/sources/modules/js/src/embindgen.py
+
 
 Example Files:
 
 grabcut.cpp
+
 grabcut.html
+
 grabcut.py
+
 paintselection.cpp
+
 paintselection.html
 
 References:
