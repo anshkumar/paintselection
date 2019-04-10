@@ -1,4 +1,4 @@
-# Paintselection and GrabCut
+# Paintselection and GrabCut (C++, Python and Javascript)
 
 ## Features
 ### Multilevel narrow band graph cut [1]
