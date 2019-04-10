@@ -5,7 +5,7 @@
 
 The multilevel banded Graph Cuts consists of three steps: coarsening, initial segmentation and uncoarsening. The coarsening is done directly on the image. This can be done with any standard multiresolution image technique. An example of simple procedure that can be used is downsampling. The original image is not considered part of the memory consumption overhead of this step. All these steps are depicted in Figure
 
-![alt text](https://github.com/anshkumar/paintselection/img/gAVoN.png)
+![alt text](https://github.com/anshkumar/paintselection/blob/master/img/gAVoN.png)
 
 During the first stage, several many smaller images {I_1, I_2, ..., I_k} are constructed based in the original image I0 such that the size constraint M(k) < M(k−1) is satisfied for each image dimension n = {1, 2, ..., k} and each image level k = {1, 2, ..., k}. Obviously, the image seeds are also reduced and the multilevel graphs are constructed directly based upon these low resolution images.
 
